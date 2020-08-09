@@ -1,0 +1,53 @@
+import requests
+import json
+import pandas as pd
+
+add = pd.read_csv('myroot/file_name.csv',delimiter='\t')
+add = add.values.tolist()
+
+response = requests.get("https://api.tomtom.com/search/2/geocode/澳門媽閣廟前地一號.json?countrySet=MO&lat=37.337&lon=-121.89&topLeft=37.553%2C-122.453&btmRight=37.4%2C-122.55&language=zh-TW&key=UJQpPv18GXBXaN4J3W5myUazZtTdDzG8")
+response = json.loads(response.text)
+
+addr = []
+for i in range(len(add)):
+    for j in add[i]:
+        addr.append(j)
+        
+District=[]
+Street_name=[]
+House_number=[]
+Lat=[]
+Lon=[]
+for i in addr:
+    response = requests.get("https://api.tomtom.com/search/2/geocode/"+i+".json?countrySet=MO&lat=37.337&lon=-121.89&topLeft=37.553%2C-122.453&btmRight=37.4%2C-122.55&language=zh-TW&key=UJQpPv18GXBXaN4J3W5myUazZtTdDzG8")
+    response = json.loads(response.text)
+    try:
+        x = response['results'][0]['position']['lon']
+        y = response['results'][0]['position']['lat']
+        street = response['results'][0]['address']['streetName']
+        House = response['results'][0]['address']['streetNumber']
+        #dist = response['results'][0]['address']['municipalitySubdivision']
+    except Exception as e:
+        if 'local' in str(e):
+            dist = ""
+        elif 'Number' in str(e):
+            House = ""
+        elif 'Name' in str(e):
+            street = ""
+        else:
+            dist = ""
+            street = ""
+            House = ""
+            x = ""
+            y = ""
+                   
+    #District.append(dist)
+    Street_name.append(street)
+    House_number.append(House)
+    Lat.append(y)
+    Lon.append(x)
+ 
+ df = pd.DataFrame({'Address':addr,'Street name':Street_name,'House number':House_number,'Lat':Lat,'Lon':Lon}, columns=['Address','Street name','House number','Lat','Lon'])
+ df.to_excel('mtroot/file_name.xlsx')
+ 
+ 
